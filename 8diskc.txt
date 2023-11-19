@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+// Function to perform SSTF Disk Scheduling
+void sstf(int *request, int n, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    // Create an array to keep track of visited tracks
+    int visited[n];
+    for (int i = 0; i < n; i++)
+        visited[i] = 0;
+
+    printf("SSTF Disk Scheduling:\n");
+    printf("Sequence of tracks visited: ");
+
+    // Process each track request
+    for (int i = 0; i < n; i++) {
+        int min_distance = INT_MAX;  // Initialize the minimum distance to a large value
+
+        // Find the track with the minimum distance from the current head
+        for (int j = 0; j < n; j++) {
+            if (!visited[j]) {
+                distance = abs(head - request[j]);
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    cur_track = j;
+                }
+            }
+        }
+
+        // Mark the track as visited
+        visited[cur_track] = 1;
+
+        // Update seek count and move the head to the current track
+        seek_count += min_distance;
+        head = request[cur_track];
+
+        // Print the visited track
+        printf("%d ", head);
+    }
+
+    printf("\nTotal number of seek operations: %d\n", seek_count);
+}
+
+// Function to perform SCAN Disk Scheduling
+void scan(int *request, int n, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    printf("SCAN Disk Scheduling:\n");
+    printf("Sequence of tracks visited: ");
+
+    // Find the direction of head movement
+    int direction = 1; // 1 for right, -1 for left
+
+    // Process each track request
+    for (int i = 0; i < n; i++) {
+        cur_track = -1;
+
+        // Search for the track in the current direction
+        while (1) {
+            for (int j = 0; j < n; j++) {
+                if (request[j] == head) {
+                    cur_track = j;
+                    break;
+                }
+            }
+
+            if (cur_track != -1)
+                break;
+
+            // Change direction if no track is found in the current direction
+            if (direction == 1) {
+                printf("%d ", head);
+                head++;
+            } else {
+                printf("%d ", head);
+                head--;
+            }
+
+            seek_count++;
+        }
+
+        // Mark the track as visited
+        request[cur_track] = -1;
+
+        // Change direction if the head reaches the end of the disk
+        if (head == 0 || head == 199) {
+            direction = -direction;
+        }
+    }
+
+    printf("\nTotal number of seek operations: %d\n", seek_count);
+}
+
+// Function to perform C-Look Disk Scheduling
+void clook(int *request, int n, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+
+    printf("C-Look Disk Scheduling:\n");
+    printf("Sequence of tracks visited: ");
+
+    // Process each track request
+    for (int i = 0; i < n; i++) {
+        int min_distance = INT_MAX;  // Initialize the minimum distance to a large value
+
+        // Find the track with the minimum distance from the current head in the right direction
+        for (int j = 0; j < n; j++) {
+            if (request[j] >= head && request[j] - head < min_distance) {
+                min_distance = request[j] - head;
+                cur_track = j;
+            }
+        }
+
+        // If no track is found in the right direction, find the minimum distance in the left direction
+        if (min_distance == INT_MAX) {
+            for (int j = 0; j < n; j++) {
+                if (request[j] < head && head - request[j] < min_distance) {
+                    min_distance = head - request[j];
+                    cur_track = j;
+                }
+            }
+        }
+
+        // Update seek count and move the head to the current track
+        seek_count += min_distance;
+        head = request[cur_track];
+
+        // Mark the track as visited
+        request[cur_track] = -1;
+
+        // Print the visited track
+        printf("%d ", head);
+    }
+
+    printf("\nTotal number of seek operations: %d\n", seek_count);
+}
+
+int main() {
+    int n, head;
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &n);
+
+    int *request = (int *)malloc(n * sizeof(int));
+
+    printf("Enter the request queue:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &request[i]);
+    }
+
+    printf("Enter the initial head position: ");
+    scanf("%d", &head);
+
+    sstf(request, n, head);
+    scan(request, n, head);
+    clook(request, n, head);
+
+    free(request);
+
+    return 0;
+}

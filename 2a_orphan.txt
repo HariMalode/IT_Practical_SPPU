@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void bubbleSort(int arr[], int n) {
+    int i, j, temp;
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // swap
+                temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int n, i;
+
+    // Get the number of integers from the user
+    printf("Enter the number of integers: ");
+    scanf("%d", &n);
+
+    int arr[n];
+
+    // Get the integers from the user
+    printf("Enter %d integers:\n", n);
+    for (i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    // Fork a child process
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child process
+        printf("\nChild process waiting for parent...\n");
+        sleep(2); // Simulate some work in the child process
+        printf("Child process completed.\n");
+    } else if (pid > 0) {
+        // Parent process
+        printf("\nParent process sorting integers...\n");
+
+        // Sort the array in the parent process
+        bubbleSort(arr, n);
+
+        // Wait for the child process to finish
+        wait(NULL);
+
+        // Display the sorted array in the parent process
+        printf("Sorted array in parent process: ");
+        for (i = 0; i < n; i++) {
+            printf("%d ", arr[i]);
+        }
+        printf("\n");
+
+        // Parent process continues
+        printf("Parent process is continuing.\n");
+    } else {
+        // Fork failed
+        perror("Fork failed");
+        exit(1);
+    }
+
+    // The parent process can continue its execution, and the child process has already exited.
+
+    return 0;
+}

@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Function to create an address book
+create_address_book() {
+    echo "Enter the size of the address book: "
+    read size
+    touch address_book.txt
+    echo "Address book created successfully."
+}
+# Function to view the address book
+view_address_book() {
+    if [ ! -f "address_book.txt" ]; then
+        echo "Address book is empty."
+        return
+    fi
+
+    echo "Address Book:"
+    while IFS= read -r line; do
+        echo "$line"
+    done < address_book.txt
+}
+
+
+# Function to insert a record
+insert_record() {
+    echo "Enter the details for the new contact:"
+    echo -n "Name: "
+    read name
+    echo -n "Address: "
+    read address
+    echo -n "Phone: "
+    read phone
+
+    echo "$name $address $phone" >> address_book.txt
+    echo "Contact added successfully."
+}
+
+# Function to delete a record
+delete_record() {
+    if [ ! -f "address_book.txt" ]; then
+        echo "Address book is empty. No record to delete."
+        return
+    fi
+
+    echo "Enter the name to delete: "
+    read search_name
+
+    grep -v "$search_name" address_book.txt > temp.txt
+    mv temp.txt address_book.txt
+
+    echo "Contact deleted successfully."
+}
+
+# Function to modify a record
+modify_record() {
+    if [ ! -f "address_book.txt" ]; then
+        echo "Address book is empty. No record to modify."
+        return
+    fi
+
+    echo "Enter the name to modify: "
+    read search_name
+
+    # Check if the name exists in the address book
+    if grep -q "$search_name" address_book.txt; then
+        echo "Enter the new details for the contact:"
+        echo -n "Name: "
+        read new_name
+        echo -n "Address: "
+        read new_address
+        echo -n "Phone: "
+        read new_phone
+
+        sed -i "s/$search_name/$new_name $new_address $new_phone/" address_book.txt
+        echo "Contact modified successfully."
+    else
+        echo "Contact not found."
+    fi
+}
+
+# Main program
+echo "Welcome to the Address Book program"
+
+while true; do
+    echo -e "\nOptions:"
+    echo "a) Create address book"
+    echo "b) View address book"
+    echo "c) Insert a record"
+    echo "d) Delete a record"
+    echo "e) Modify a record"
+    echo "f) Exit"
+
+    echo -n "Enter your choice: "
+    read choice
+
+    case $choice in
+        a) create_address_book;;
+        b) view_address_book;;
+        c) insert_record;;
+        d) delete_record;;
+        e) modify_record;;
+        f) echo "Exiting the program."
+           exit 0;;
+        *) echo "Invalid choice. Please try again.";;
+    esac
+done
+
