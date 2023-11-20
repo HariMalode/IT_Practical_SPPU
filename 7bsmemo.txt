@@ -1,0 +1,63 @@
+
+client.c
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+int main()
+{
+// ftok to generate unique key
+key_t key = ftok("shmfile",65);
+// shmget returns an identifier in shmid
+int shmid = shmget(key,1024,0666|IPC_CREAT);
+// shmat to attach to shared memory
+char *str = (char*) shmat(shmid,(void*)0,0);
+printf("Data read from memory: %s\n",str);
+//detach from shared memory
+shmdt(str);
+// destroy the shared memory
+shmctl(shmid,IPC_RMID,NULL);
+return 0;
+}
+
+
+
+
+
+
+
+server.c
+
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    // ftok to generate unique key
+    key_t key = ftok("shmfile", 65);
+    
+    // shmget returns an identifier in shmid
+    // r-4 w-2 x-1
+    int shmid = shmget(key, 1024, 0666 | IPC_CREAT);
+    
+    // shmat to attach to shared memory
+    char *str = (char *)shmat(shmid, (void *)0, 0);
+    
+    printf("Write Data : ");
+    
+    // Use fgets instead of gets
+    fgets(str, 1024, stdin);
+    
+    // Remove the trailing newline character if present
+    size_t len = strlen(str);
+    if (len > 0 && str[len - 1] == '\n') {
+        str[len - 1] = '\0';
+    }
+
+    printf("Data written in memory: %s\n", str);
+    
+    // detach from shared memory
+    shmdt(str);
+    
+    return 0;
+}
